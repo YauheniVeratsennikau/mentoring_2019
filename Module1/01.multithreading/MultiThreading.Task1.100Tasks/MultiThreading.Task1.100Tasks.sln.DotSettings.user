@@ -1,0 +1,93 @@
+﻿<xsd:schema xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns="http://www.meteogroup-maritime.com/spos/shipprofile"
+            xmlns:sp="http://www.meteogroup-maritime.com/spos/shipprofile"
+            targetNamespace="http://www.meteogroup-maritime.com/spos/shipprofile"
+            elementFormDefault="qualified">
+
+  <xsd:complexType name="windmatrix">
+    <xsd:sequence>
+      <xsd:element name="row" minOccurs="6" maxOccurs="6" type="windmatrixRow" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="windmatrixRow">
+    <xsd:sequence>
+      <xsd:element name="direction" minOccurs="5" maxOccurs="5" type="direction"/>
+    </xsd:sequence>
+    <xsd:attribute name="windspeed" type="xsd:integer" />
+  </xsd:complexType>
+
+  <xsd:complexType name="direction">
+    <xsd:simpleContent>
+      <xsd:extension base="restriction">
+        <xsd:attribute name="angle" type="xsd:integer" />
+      </xsd:extension>
+    </xsd:simpleContent>
+  </xsd:complexType>
+
+  <xsd:simpleType name ="restriction">
+    <xsd:restriction base="xsd:integer">
+      <xsd:minInclusive value="0"/>
+      <xsd:maxInclusive value="150"/>
+    </xsd:restriction>
+  </xsd:simpleType>
+  
+  <xsd:complexType name="wavesmatrix">
+    <xsd:sequence>
+      <xsd:element name="row" minOccurs="5" maxOccurs="5" type="wavesmatrixRow" />
+    </xsd:sequence>
+  </xsd:complexType>
+
+  <xsd:complexType name="wavesmatrixRow">
+    <xsd:sequence>
+      <xsd:element name="direction" minOccurs="5" maxOccurs="5" type="direction" />
+    </xsd:sequence>
+    <xsd:attribute name="wavesheight" type="xsd:integer" />
+  </xsd:complexType>
+
+  <xsd:complexType name="fuelconsumption">
+    <xsd:sequence>
+      <xsd:element name="add" minOccurs="0" maxOccurs="unbounded" type="fuelRow" />
+    </xsd:sequence>
+  </xsd:complexType>
+  
+  <xsd:complexType name="fuelRow">
+    <xsd:attribute name="speed">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:double">
+          <xsd:minInclusive value="0"/>
+          <xsd:maxInclusive value="50"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="fuel">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:double">
+          <xsd:minInclusive value="0"/>
+          <xsd:maxInclusive value="1000"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+    <xsd:attribute name="rpm">
+      <xsd:simpleType>
+        <xsd:restriction base="xsd:double">
+          <xsd:minInclusive value="0"/>
+          <xsd:maxInclusive value="999"/>
+        </xsd:restriction>
+      </xsd:simpleType>
+    </xsd:attribute>
+  </xsd:complexType>
+
+  <xsd:element name="sposshipprofile" >
+    <xsd:complexType>
+      <xsd:sequence>
+        <xsd:element name="name" minOccurs="1" maxOccurs="1" type="xsd:string" />
+        <xsd:element name="windmatrix" minOccurs="1" maxOccurs="1" type="sp:windmatrix" />
+        <xsd:element name="wavesmatrix" minOccurs="1" maxOccurs="1" type="sp:wavesmatrix" />
+        <xsd:element name="fuelconsumption" minOccurs="1" maxOccurs="1" type="sp:fuelconsumption" />
+        <xsd:element name="fuelscalingfactor" minOccurs="0" maxOccurs="1" type="xsd:double" />
+      </xsd:sequence>
+    </xsd:complexType>
+  </xsd:element>
+</xsd:schema>			
+
