@@ -12,7 +12,9 @@ namespace MultiThreading.Task2.Chaining
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
+    using System.Runtime.CompilerServices;
     using System.Runtime.InteropServices;
+    using System.Threading;
     using System.Threading.Tasks;
 
     class Program
@@ -29,10 +31,6 @@ namespace MultiThreading.Task2.Chaining
 
         private static List<string> lstWatchedActionTimes = new List<string>();
 
-
-        //ContinuesWith
-        //Use Code Standart
-
         /// <summary>
         /// Mains the specified arguments.
         /// </summary>
@@ -47,12 +45,10 @@ namespace MultiThreading.Task2.Chaining
             Console.WriteLine("Fourth Task – calculates the average value. All this tasks should print the values to console");
             Console.WriteLine();
 
-            var actions = new List<Action> { ProcessThread, ProcessTasks };
+            var actions = new List<Action> { ProcessThread, ProcessTaskFactory };
 
             actions.ForEach(DoWatchedAction);
-            //DoWatchedAction(ProcessThread);
-            //DoWatchedAction(ProcessTasks);
-
+           
             lstWatchedActionTimes.ForEach(Console.WriteLine);
 
             Console.ReadLine();
@@ -114,51 +110,17 @@ namespace MultiThreading.Task2.Chaining
             task.Start();
         }
 
-        //private static void ProcessTaskFactory()
-        //{
-        //     var t = new TaskFactory( );
 
-        //    t.StartNew()
-        //    Task.Factory.StartNew(ProcessFirst).ContinueWith(task => task.Result)
-        //        .ContinueWith(task => task.Result)
-        //        .ContinueWith(task => task.Result)
-        //        .Wait();
-        //}
-
-        private static void ProcessTasks()
+        private static void ProcessTaskFactory()
         {
-            var task = Task.Run(ProcessFirstTask).ContinueWith(
-                 ProcessSecondQueue,
-                TaskContinuationOptions.NotOnFaulted);
-            task.Wait();
+            Task.Factory.StartNew(CreateRandomList)
+                .ContinueWith(task => MultEachElementOfListByRandomValues(task.Result))
+                .ContinueWith(task => OrderList(task.Result))
+                .ContinueWith(task => CalcAverage(task.Result))
+                .Wait();
         }
 
-        private static void ProcessSecondQueue(Task<List<int>> lstRandomIntTask)
-        {
-            var lstRandomInt = lstRandomIntTask.Result;
-            var task = Task.Run(() => ProcessSecondTask(lstRandomInt)).ContinueWith(
-                    ProcessThirdQueue,
-                TaskContinuationOptions.NotOnFaulted);
-            Task.WaitAll(task);
-        }
-
-        private static void ProcessThirdQueue(Task<List<int>> lstRandomIntTask)
-        {
-            var lstRandomInt = lstRandomIntTask.Result;
-            var task = Task.Run(() => ProcessThirdTask(lstRandomInt)).ContinueWith(
-                ProcessFourthQueue,
-                TaskContinuationOptions.NotOnFaulted);
-            Task.Wait(task);
-        }
-
-        private static void ProcessFourthQueue(Task<List<int>> lstRandomIntTask)
-        {
-            var lstRandomInt = lstRandomIntTask.Result;
-            var task = Task.Run(() => ProcessFourthTask(lstRandomInt));
-            Task.WaitAll(task);
-        }
-
-        private static List<int> ProcessFirst()
+        private static List<int> CreateRandomList()
         {
             var rdm = new Random();
             var lstRandoms = new List<int>();
@@ -167,73 +129,42 @@ namespace MultiThreading.Task2.Chaining
                 lstRandoms.Add(rdm.Next(RandomSize));
                 Console.WriteLine($"Task#1 - iteration: {i} ; random value: {lstRandoms[i]}");
             }
-
+            
             PrintConsoleDelimiter();
-
+            
             return lstRandoms;
         }
 
-        private static Task<List<int>> ProcessFirstTask()
-        {
-            var rdm = new Random();
-            var lstRandoms = new List<int>();
-            for (int i = 0; i < ArraySize; i++)
-            {
-                lstRandoms.Add(rdm.Next(RandomSize));
-                Console.WriteLine($"Task#1 - iteration: {i} ; random value: {lstRandoms[i]}");
-            }
-
-            PrintConsoleDelimiter();
-
-            return Task.FromResult(lstRandoms);
-        }
-
-        private static Task<List<int>> ProcessSecondTask(List<int> lstRandomInt)
+        private static List<int> MultEachElementOfListByRandomValues(List<int> lstRandomInt)
         {
             var rdm = new Random();
             for (var j = 0; j < ArraySize; j++)
             {
-                var valueT2 = rdm.Next(RandomSize);
-                lstRandomInt[j] *= valueT2;
-                Console.WriteLine($"Task#2 - iteration:{j} - random value: {valueT2} - new value: {lstRandomInt[j]}");
+                var randomValue = rdm.Next(RandomSize);
+                lstRandomInt[j] *= randomValue;
+                Console.WriteLine($"Task#2 - iteration:{j} - random value: {randomValue} - new value: {lstRandomInt[j]}");
             }
 
             PrintConsoleDelimiter();
 
-            return Task.FromResult(lstRandomInt);
+            return lstRandomInt;
         }
 
-
-        private static Task<List<int>> ProcessSecondTask(List<int> lstRandomInt)
+        private static List<int> OrderList(List<int> lstRandomInt)
         {
-            var rdm = new Random();
-            for (var j = 0; j < ArraySize; j++)
-            {
-                var valueT2 = rdm.Next(RandomSize);
-                lstRandomInt[j] *= valueT2;
-                Console.WriteLine($"Task#2 - iteration:{j} - random value: {valueT2} - new value: {lstRandomInt[j]}");
-            }
-
-            PrintConsoleDelimiter();
-
-            return Task.FromResult(lstRandomInt);
-        }
-
-        private static Task<List<int>> ProcessThirdTask(List<int> lstRandomInt)
-        {
-            lstRandomInt = lstRandomInt.OrderBy(x => x).ToList();
+            var orderedLstRandomInt = lstRandomInt.OrderBy(x => x).ToList();
             var i = 0;
-            lstRandomInt.ForEach(
+            orderedLstRandomInt.ForEach(
                 item =>
                     {
                         Console.WriteLine($"Task3# - iteration: {i++} - value:{item}");
                     });
             PrintConsoleDelimiter();
 
-            return Task.FromResult(lstRandomInt);
+            return orderedLstRandomInt;
         }
 
-        private static Task ProcessFourthTask(List<int> lstRandomInt)
+        private static Task CalcAverage(List<int> lstRandomInt)
         {
             Console.WriteLine($"Task4# - Average: {lstRandomInt.Average()}");
             PrintConsoleDelimiter();
@@ -246,7 +177,7 @@ namespace MultiThreading.Task2.Chaining
         /// </summary>
         private static void PrintConsoleDelimiter()
         {
-            Console.WriteLine("//-----------------------------------------------------");
+            Console.WriteLine($"//-------------------Thread: {Thread.CurrentThread.ManagedThreadId}-------------------");
         }
 
         /// <summary>
