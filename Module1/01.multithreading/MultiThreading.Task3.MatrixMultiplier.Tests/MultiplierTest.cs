@@ -5,9 +5,13 @@ using MultiThreading.Task3.MatrixMultiplier.Multipliers;
 
 namespace MultiThreading.Task3.MatrixMultiplier.Tests
 {
+    using System.Diagnostics;
+
     [TestClass]
     public class MultiplierTest
     {
+        private TestContext testContextInstance;
+
         [TestMethod]
         public void MultiplyMatrix3On3Test()
         {
@@ -18,8 +22,40 @@ namespace MultiThreading.Task3.MatrixMultiplier.Tests
         [TestMethod]
         public void ParallelEfficiencyTest()
         {
-            // todo: implement a test method to check the size of the matrix which makes parallel multiplication more effective than
-            // todo: the regular one
+            var watch = new Stopwatch();
+            long sequenceTime = 0;
+            long parallelTime = 100;
+            var matrixSize = 10;
+
+            while (parallelTime >= sequenceTime)
+            {
+                var firstMatrix = new Matrix(matrixSize, matrixSize, true);
+                var secondMatrix = new Matrix(matrixSize, matrixSize, true);
+
+                watch.Start();
+                new MatricesMultiplier().Multiply(firstMatrix, secondMatrix);
+                watch.Stop();
+                sequenceTime = watch.ElapsedMilliseconds;
+
+                watch.Restart();
+                new MatricesMultiplierParallel().Multiply(firstMatrix, secondMatrix);
+                watch.Stop();
+                parallelTime = watch.ElapsedMilliseconds;
+
+                matrixSize += 1;
+            }
+
+            TestContext.WriteLine($"matrix size {matrixSize}; parallelTime:{parallelTime} ; sequenceTime:{sequenceTime}");
+        }
+
+        /// <summary>
+        ///  Gets or sets the test context which provides
+        ///  information about and functionality for the current test run.
+        ///</summary>
+        public TestContext TestContext
+        {
+            get { return testContextInstance; }
+            set { testContextInstance = value; }
         }
 
         #region private methods
@@ -70,6 +106,7 @@ namespace MultiThreading.Task3.MatrixMultiplier.Tests
             Assert.AreEqual(213, multiplied.GetElement(2, 1));
             Assert.AreEqual(728, multiplied.GetElement(2, 2));
         }
+
 
         #endregion
     }

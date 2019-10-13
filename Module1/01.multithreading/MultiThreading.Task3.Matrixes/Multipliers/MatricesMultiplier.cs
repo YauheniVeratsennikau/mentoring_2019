@@ -2,6 +2,9 @@
 
 namespace MultiThreading.Task3.MatrixMultiplier.Multipliers
 {
+    using System;
+    using System.Diagnostics;
+
     public class MatricesMultiplier : IMatricesMultiplier
     {
         public IMatrix Multiply(IMatrix m1, IMatrix m2)
@@ -19,7 +22,7 @@ namespace MultiThreading.Task3.MatrixMultiplier.Multipliers
 
                     resultMatrix.SetElement(i, j, sum);
                 }
-            };
+            }
 
             return resultMatrix;
         }
