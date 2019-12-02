@@ -4,75 +4,81 @@ using System.Linq.Expressions;
 
 namespace ExpressionTrees.Task1.ExpressionsTransformer
 {
+    //убрать зависимость от кол-ва параметров
+    //убрать статик метод
+    //тесты на все случаи
     public class ReplaceParameterVisitor : ExpressionVisitor
     {
-        public static Expression<Func<TElement, int>> ReplaceParameter<TElement>(
-            Expression<Func<TElement, TElement, TElement, int>> inputExpression,
-            Dictionary<string, TElement> dicElements)
+        private Dictionary<string, int> _mappingDictionary;
+
+        private List<ParameterExpression> _paramsExpression;
+
+
+        public ReplaceParameterVisitor(Dictionary<string, int> mappingDictionary)
         {
+            if (mappingDictionary == null)
+            {
+                throw new ArgumentNullException(nameof(mappingDictionary));
+            }
 
-            Expression body = inputExpression.Body;
-
-            var inputData = ParseParams(dicElements, inputExpression);
-
-            var mapping = inputData.Item1;
-            var lstParam = inputData.Item2;
-
-            ReplaceParameterVisitor visitor = new ReplaceParameterVisitor(mapping);
-
-            Expression newBody = visitor.Visit(body);
-
-            ////todo. only for test
-            //if (lstParam.Count == 0)
-            //{
-            //    lstParam.Add(Expression.Parameter(typeof(int), "fake_param"));
-            //}
-            ////---------
-
-            Expression<Func<TElement, int>> newExpression = Expression.Lambda<Func<TElement, int>>(newBody, lstParam);
-
-            return newExpression;
-
+            _mappingDictionary = mappingDictionary;
+            _paramsExpression = new List<ParameterExpression>();
         }
 
-        private static Tuple<Dictionary<ParameterExpression, ConstantExpression>, List<ParameterExpression>> ParseParams<TElement>(Dictionary<string, TElement> dicElements,
-                                                                        Expression<Func<TElement, TElement, TElement, int>> inputExpression)
+        protected override Expression VisitBinary(BinaryExpression node)
         {
-            var mapping = new Dictionary<ParameterExpression, ConstantExpression>();
-            var paramExps = new List<ParameterExpression>();
-            foreach (var param in inputExpression.Parameters)
+            Expression leftConstant = null;
+            Expression rightConstant = null;
+
+            if (node.Left.NodeType == ExpressionType.Parameter)
             {
-                if (param != null && dicElements.TryGetValue(param.Name, out var value))
+                if (_mappingDictionary.TryGetValue(node.Left.ToString(), out var constant))
                 {
-                    mapping.Add(param, Expression.Constant(value, typeof(TElement)));
-                }
-                else
-                {
-                    paramExps.Add(param);
+                    leftConstant = Expression.Constant(constant);
                 }
             }
 
-            return Tuple.Create(mapping, paramExps);
+            if (node.Right.NodeType == ExpressionType.Parameter)
+            {
+                if (_mappingDictionary.TryGetValue(node.Right.ToString(), out var constant))
+                {
+                    rightConstant = Expression.Constant(constant);
+                }
+            }
+
+            if (leftConstant == null && rightConstant == null)
+            {
+                return base.VisitBinary(node);
+            }
+
+            var convertedNode = node.Update(leftConstant ?? node.Left, node.Conversion, rightConstant ?? node.Right);
+
+            if (NeedBaseProcessing(leftConstant, rightConstant, node))
+            {
+                return base.VisitBinary(convertedNode);
+            }
+
+            return convertedNode;
         }
 
-        public ReplaceParameterVisitor(Dictionary<ParameterExpression, ConstantExpression> mapping)
+        private bool NeedBaseProcessing(Expression leftConstant, Expression rightConstant, BinaryExpression node)
         {
-            this.mapping = mapping;
+            if (leftConstant == null && !IsParamOrConstantType(node.Left))
+            {
+                return true;
+            }
+
+            if (rightConstant == null && !IsParamOrConstantType(node.Right))
+            {
+                return true;
+            }
+
+            return false;
         }
 
-        private readonly Dictionary<ParameterExpression, ConstantExpression> mapping;
-
-
-        protected override Expression VisitParameter(ParameterExpression node)
+        private bool IsParamOrConstantType(Expression node)
         {
-            if (mapping.TryGetValue(node, out var constantExp))
-            {
-                return constantExp;
-            }
-            else
-            {
-                return base.VisitParameter(node);
-            }
+            return node.NodeType == ExpressionType.Parameter || node.NodeType == ExpressionType.Constant;
         }
     }
 }

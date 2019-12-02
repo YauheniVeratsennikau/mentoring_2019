@@ -45,8 +45,9 @@ namespace ExpressionTrees.Task1.ExpressionsTransformer
             };
 
             Expression<Func<Int32, Int32, Int32, Int32>> source = (a, b, c) => (a + b - c * b) / (a + c);
-            var result = ReplaceParameterVisitor.ReplaceParameter(source, dicValues);
-            var bRes = result.Compile()(4);
+            var result = new ReplaceParameterVisitor(dicValues).VisitAndConvert(source, "");
+
+            var bRes = result?.Compile().Invoke(0, 4, 0);
 
             Console.WriteLine("Original expression");
             Console.WriteLine(source.Body);
@@ -60,7 +61,7 @@ namespace ExpressionTrees.Task1.ExpressionsTransformer
 
             Console.WriteLine("Converted expression");
             Console.WriteLine(result?.Body);
-            Console.WriteLine($"c = 4 \r\nresult : {bRes}");
+            Console.WriteLine($"b = 4 \r\nresult : {bRes}");
             Console.WriteLine("End.Expression Visitor for converting param to const.");
 
             Console.ReadLine();
