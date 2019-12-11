@@ -17,7 +17,7 @@ namespace MultiThreading.Task1._100Tasks
     {
         const int TaskAmount = 100;
         const int MaxIterationsCount = 1000;
-
+//test message
         static void Main(string[] args)
         {
             Console.WriteLine(".Net Mentoring Program. Multi threading V1.");
