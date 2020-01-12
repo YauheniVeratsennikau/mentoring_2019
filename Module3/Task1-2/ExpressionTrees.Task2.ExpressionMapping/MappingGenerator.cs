@@ -5,6 +5,7 @@ namespace ExpressionTrees.Task2.ExpressionMapping
 {
     public class MappingGenerator
     {
+        // todo: please continue
         public Mapper<TSource, TDestination> Generate<TSource, TDestination>()
         {
             var sourceParam = Expression.Parameter(typeof(TSource));

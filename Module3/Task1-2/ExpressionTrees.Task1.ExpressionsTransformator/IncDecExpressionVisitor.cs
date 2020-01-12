@@ -32,6 +32,7 @@ namespace ExpressionTrees.Task1.ExpressionsTransformer
             param = null;
             ConstantExpression constant = null;
 
+            // todo: this part of code is not much readable, so could be simplified
             if (node != null
                 && node.Left.NodeType == ExpressionType.Parameter
                 && node.Right.NodeType == ExpressionType.Constant)

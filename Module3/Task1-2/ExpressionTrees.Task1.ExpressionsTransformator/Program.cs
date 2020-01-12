@@ -55,7 +55,7 @@ namespace ExpressionTrees.Task1.ExpressionsTransformer
             Console.WriteLine("Original constants");
             foreach (var item in dicValues)
             {
-                Console.WriteLine($"{item.Key}={item.Value}");
+                Console.WriteLine($"{item.Key}={item.Value}"); //todo: please keep a habit to write well-styled code: no extra spaces, blanks, etc:
 
             }
 
