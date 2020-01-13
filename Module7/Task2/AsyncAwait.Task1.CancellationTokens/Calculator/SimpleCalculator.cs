@@ -1,13 +1,14 @@
 ﻿using System.Threading;
+using System.Threading.Tasks;
+using AOP.CacheLib;
 
-namespace AsyncAwait.Task1.CancellationTokens
+namespace AOP.AsyncAwait.Task1.CancellationTokens.Calculator
 {
-    using System.Threading.Tasks;
-
     /// <summary>
     /// Represent a calculator
     /// </summary>
-    static class Calculator
+    [CacheInterceptorAspect]
+    public class SimpleCalculator: ICalculator
     {
         /// <summary>
         /// The calculate.
@@ -21,7 +22,7 @@ namespace AsyncAwait.Task1.CancellationTokens
         /// <returns>
         /// The <see cref="Task"/>.
         /// </returns>
-        public static long Calculate(int n, CancellationToken token)
+        public long Calculate(int n, CancellationToken token)
         {
             long sum = 0;
 
