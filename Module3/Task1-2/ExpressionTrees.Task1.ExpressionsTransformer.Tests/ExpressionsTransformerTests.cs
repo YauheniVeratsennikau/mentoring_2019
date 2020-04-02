@@ -1,5 +1,4 @@
-﻿
-namespace ExpressionTrees.Task1.ExpressionsTransformer.Tests
+﻿namespace ExpressionTrees.Task1.ExpressionsTransformer.Tests
 {
     using System.Collections.Generic;
     using System.Linq.Expressions;
